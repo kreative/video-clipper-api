@@ -1,0 +1,10 @@
+docuvet_api_cdk/
+migrations/
+.env
+.gitignore
+compose.yaml
+Pipfile*
+README.md
+.github/
+cdk.out/
+*_test.py

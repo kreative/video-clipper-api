@@ -1,0 +1,4 @@
+select = ["ALL"]
+line-length = 120
+ignore = ["D103", "S101", "T201"]
+indent-width = 4
