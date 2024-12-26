@@ -6,6 +6,22 @@ from flask import current_app as app
 from sentry_sdk import capture_message
 
 
+def retry_on_db_error(func):
+    def wrapper(*args, **kwargs):
+        retries = 3
+        while retries > 0:
+            try:
+                return func(*args, **kwargs)
+            except OperationalError as e:
+                retries -= 1
+                if retries == 0:
+                    raise e
+                sleep(2 + (1 * random.random()))
+        return None
+
+    return wrapper
+
+
 def retry_with_exp_backoff(
     func,
     initial_delay: float = 1,
