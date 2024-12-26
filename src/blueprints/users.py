@@ -3,12 +3,12 @@ from flask import Blueprint, g, request
 from src.constants.status_codes import ACCEPTED, NOT_FOUND, UNAUTHORIZED
 from src.services.kreative_id import get_info_for_accounts
 from src.services.user import get_user_by_id, update_user
-from src.services.videos import add_new_video, delete_video, get_videos_for_user
+from src.services.videos import add_new_video, delete_video, get_video_by_id, get_videos_for_user
 from src.utils.auth import authorize
 
 users_blueprint = Blueprint("users", __name__, url_prefix="/users")
 
-@users_blueprint.route("/", methods=["GET"])
+@users_blueprint.route("", methods=["GET"])
 @authorize(lambda: g.has_base)
 def get_user_route():
     user = get_user_by_id(g.ksn)
@@ -29,7 +29,7 @@ def get_user_route():
     }
 
 
-@users_blueprint.route("/", methods=["PUT"])
+@users_blueprint.route("", methods=["PUT"])
 @authorize(lambda: g.has_base)
 def update_user_route():
     markdown_template = request.json.get("markdown_template")
@@ -68,7 +68,7 @@ def add_video_for_user_route():
         NOT_FOUND
 
     yt_link = request.json.get("yt_link")
-    video = add_new_video(user_id, yt_link)
+    video = add_new_video(g.ksn, yt_link)
 
     # send off something to the queue for video processing
 
@@ -81,9 +81,9 @@ def delete_video_route(video_id):
     video = get_video_by_id(video_id)
 
     if not video:
-        NOT_FOUND
+        return NOT_FOUND
 
-    if video.user_id != user_id:
+    if video.user_id != g.ksn:
         return UNAUTHORIZED
 
     delete_video(video_id)
