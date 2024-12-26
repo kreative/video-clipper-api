@@ -34,6 +34,15 @@ dictConfig(
 
 CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "https://*.kreativeusa.com"]}}, supports_credentials=True)
 
+@app.before_request
+def before_request():
+    app.logger.info(f"Request headers: {request.headers}")
+
+@app.route("/test-cors", methods=["GET", "OPTIONS"])
+def test_cors():
+    response = jsonify(message="CORS test successful")
+    return response
+
 if os.environ["FLASK_ENV"] != "development":
     gunicorn_logger = logging.getLogger("gunicorn.error")
     app.logger.handlers = gunicorn_logger.handlers
