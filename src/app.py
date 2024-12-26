@@ -40,8 +40,7 @@ def before_request():
 
 @app.route("/test-cors", methods=["GET", "OPTIONS"])
 def test_cors():
-    response = jsonify(message="CORS test successful")
-    return response
+    return "CORS test successful"
 
 if os.environ["FLASK_ENV"] != "development":
     gunicorn_logger = logging.getLogger("gunicorn.error")
