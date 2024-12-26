@@ -12,7 +12,7 @@ users_blueprint = Blueprint("users", __name__, url_prefix="/users")
 @authorize(lambda: g.has_base)
 def get_user_route():
     user = get_user_by_id(g.ksn)
-    id_account = get_info_for_accounts([user_id])
+    id_account = get_info_for_accounts([g.ksn])
     account = id_account[0] if id_account else None
 
     if not user:
