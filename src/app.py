@@ -6,14 +6,10 @@ import sentry_sdk
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
-from segment import analytics
 
-from src.blueprints import example_blueprint
 from src.db import db
 
 app = Flask(__name__)
-
-analytics.write_key = os.environ["SEGMENT_WRITE_KEY"]
 
 dictConfig(
     {
@@ -30,13 +26,8 @@ dictConfig(
                 "stream": "ext://sys.stdout",
                 "formatter": "default",
             },
-            "logtail": {
-                "class": "logtail.LogtailHandler",
-                "source_token": os.environ["LOGTAIL_SOURCE_TOKEN"],
-                "formatter": "default",
-            },
         },
-        "root": {"level": "DEBUG", "handlers": ["console", "logtail"]},
+        "root": {"level": "DEBUG", "handlers": ["console"]},
     },
 )
 
@@ -68,7 +59,6 @@ migrate = Migrate(app, db)
 with app.app_context():
     db.create_all()
 
-app.register_blueprint(example_blueprint)
 
 @app.route("/")
 def hello_world():

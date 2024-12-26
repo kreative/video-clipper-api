@@ -7,23 +7,16 @@ from requests import post
 
 from src.constants.external_services import KREATIVE_ID_API_URL
 from src.constants.roles import (
-    DOCUVET_BASE,
-    DOCUVET_NONPROVIDER,
-    DOCUVET_ORG_ADMIN,
-    DOCUVET_PROVIDER,
-    DOCUVET_SUBSCRIBER,
-    DOCUVET_SUPER_USER,
     KREATIVE_ID_ADMIN,
     KREATIVE_ID_DEVELOPER,
+    VIDCLIP_BASE,
 )
 from src.constants.status_codes import FORBIDDEN, INTERNAL_SERVER_ERROR, KEYCHAIN_NOT_FOUND, NOT_FOUND, UNAUTHORIZED
 from src.services.veterinarians import get_user_by_id
 
 KREATIVE_ID_KEY_HEADER = "Kreative-Id-Key"
-KREATIVE_API_KEY_HEADER = "Docuvet-Api-Key"
 AIDN = environ["AIDN"]
 APP_CHAIN = environ["APP_CHAIN"]
-DOCUVET_API_KEY = environ["DOCUVET_API_KEY"]
 
 def has_intersection(s0, s1) -> bool:
     return bool(set(s0) & set(s1))
@@ -44,16 +37,6 @@ class User:
 def verify_kreative_cookie():
     if request.path == "/":
         return None
-
-    header_api_key = request.headers.get(KREATIVE_API_KEY_HEADER)
-    if (header_api_key):
-        if (DOCUVET_API_KEY and header_api_key == DOCUVET_API_KEY):
-            g.is_super_user = True
-
-            app.logger.info(f"received authorized request {request.method} {request.url} with api key")
-
-            return None
-        return FORBIDDEN
 
     # get KREATIVE_COOKIE from request headers
     kreative_id_key = request.headers.get(KREATIVE_ID_KEY_HEADER)
@@ -143,12 +126,9 @@ def authorize(authorize_logic: Callable = lambda: False):
             if not hasattr(g, "roles"):
                 return UNAUTHORIZED
 
-            docuvet_roles = {
-                DOCUVET_SUBSCRIBER, DOCUVET_ORG_ADMIN,
-                DOCUVET_SUPER_USER, DOCUVET_NONPROVIDER, DOCUVET_PROVIDER, DOCUVET_BASE,
-            }
+            vidclip_roles = { VIDCLIP_BASE }
 
-            if has_intersection(docuvet_roles, g.roles) and authorize_logic():
+            if has_intersection(vidclip_roles, g.roles) and authorize_logic():
                 return func(*args, **kwargs)
 
             app.logger.info(f"unauthorized request {request.method} {request.url} by user {g.ksn}")
