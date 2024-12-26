@@ -32,7 +32,7 @@ dictConfig(
     },
 )
 
-CORS(app)
+CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "https://*.kreativeusa.com"]}}, supports_credentials=True)
 
 if os.environ["FLASK_ENV"] != "development":
     gunicorn_logger = logging.getLogger("gunicorn.error")
