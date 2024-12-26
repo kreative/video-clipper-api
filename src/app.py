@@ -8,6 +8,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 
 from src.db import db
+from src.blueprints.users import users_blueprint
 
 app = Flask(__name__)
 
@@ -59,6 +60,7 @@ migrate = Migrate(app, db)
 with app.app_context():
     db.create_all()
 
+app.register_blueprint(users_blueprint)
 
 @app.route("/")
 def hello_world():

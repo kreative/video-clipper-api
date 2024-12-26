@@ -7,7 +7,7 @@ from pytubefix import YouTube
 
 from src.db import db
 from src.models import Video
-from src.utils.resiliance import retry_on_db_error
+from src.utils.resiliance import retry_on_db_error, retry_with_exp_backoff
 
 deepgram = DeepgramClient(os.getenv("DEEPGRAM_API_KEY"))
 gpt = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))

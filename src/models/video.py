@@ -24,3 +24,23 @@ class Video(db.Model):
     transcript: str = Column(String, nullable=True)
     prompt_response: str = Column(String, nullable=True)
     created_at: datetime = Column(DateTime, default=datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "yt_link": self.yt_link,
+            "status": self.status,
+            "title": self.title,
+            "length": self.length,
+            "views": self.views,
+            "thumbnail_url": self.thumbnail_url,
+            "description": self.description,
+            "keywords": self.keywords,
+            "rating": self.rating,
+            "author": self.author,
+            "channel_url": self.channel_url,
+            "transcript": self.transcript,
+            "prompt_response": self.prompt_response,
+            "created_at": self.created_at,
+        }

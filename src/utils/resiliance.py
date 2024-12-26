@@ -69,8 +69,7 @@ def retry_with_exp_backoff(
                     app.logger.error(
                         f"Error for {func.__name__}: {errstr}",
                     )
-                    _ = capture_message(f"Error for {func.__name__}: {
-                                        errstr}", level="error")
+                    _ = capture_message(f"Error for {func.__name__}: {errstr}", level="error")
                 num_retries += 1  # Increment retries
                 if num_retries > max_retries:
                     app.logger.error(
@@ -124,15 +123,13 @@ def generic_retry(func, max_retries=3, initial_delay=1, exponential_base=2, jitt
             except Exception as e:
                 e_str = str(e)
                 app.logger.error(e_str)
-                capture_message(f"Error for {func.__name__}: {
-                                       e_str}, retrying...", level="warn")
+                capture_message(f"Error for {func.__name__}: {e_str}, retrying...", level="warn")
 
                 num_retries += 1  # Increment retries
                 if num_retries > max_retries:
                     app.logger.error("max retries reached")
 
-                    capture_message(f"Exceeded max retries of {max_retries} for {
-                                           func.__name__}", level="fatal")
+                    capture_message(f"Exceeded max retries of {max_retries} for {func.__name__}", level="fatal")
                     raise e
                 delay *= exponential_base * \
                     (1 + jitter * random.random())  # Increment the delay
