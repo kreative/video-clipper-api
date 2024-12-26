@@ -17,4 +17,4 @@ COPY src/ ./src
 
 EXPOSE 5000
 
-CMD ["doppler", "run", "--", "gunicorn", "-w", "3", "-b", "0.0.0.0:5000", "--timeout", "240", "src.app:app"]
+CMD ["doppler", "run", "--", "gunicorn", "-w", "3", "-b", "0.0.0.0:${PORT:-5000}", "--timeout", "240", "--log-level", "debug", "--error-logfile", "-", "src.app:app"]
