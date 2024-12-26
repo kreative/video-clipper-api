@@ -33,7 +33,7 @@ dictConfig(
 )
 
 cors = CORS(app, resources={
-            r"/api/*": {"origins": [
+            r"/*": {"origins": [
                 "http://localhost:3000",
                 "https://*.kreativeusa.com",
             ]}})
