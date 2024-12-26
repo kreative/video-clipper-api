@@ -7,8 +7,8 @@ from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 
-from src.db import db
 from src.blueprints.users import users_blueprint
+from src.db import db
 
 app = Flask(__name__)
 

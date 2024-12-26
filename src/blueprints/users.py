@@ -10,21 +10,22 @@ users_blueprint = Blueprint("users", __name__, url_prefix="/users")
 
 @users_blueprint.route("/", methods=["GET"])
 @authorize(lambda: g.has_base)
-def get_user_route(user_id):
+def get_user_route():
     user = get_user_by_id(g.ksn)
-
-    if not user:
-        NOT_FOUND
-
     id_account = get_info_for_accounts([user_id])
     account = id_account[0] if id_account else None
 
+    if not user:
+        return { "user": None, "account": account }
+
     return {
-        "id": user.id,
-        "markdown_template": user.markdown_template,
-        "prompt": user.prompt,
+        "user": {
+            "id": user.id,
+            "markdown_template": user.markdown_template,
+            "prompt": user.prompt,
+            "created_at": user.created_at,
+        },
         "account": account,
-        "created_at": user.created_at,
     }
 
 
@@ -37,10 +38,12 @@ def update_user_route():
     updated_user = update_user(g.ksn, markdown_template, prompt)
 
     return {
-        "id": updated_user.id,
-        "markdown_template": updated_user.markdown_template,
-        "prompt": updated_user.prompt,
-        "created_at": updated_user.created_at,
+        "user": {
+            "id": updated_user.id,
+            "markdown_template": updated_user.markdown_template,
+            "prompt": updated_user.prompt,
+            "created_at": updated_user.created_at,
+        },
     }
 
 
@@ -66,6 +69,8 @@ def add_video_for_user_route():
 
     yt_link = request.json.get("yt_link")
     video = add_new_video(user_id, yt_link)
+
+    # send off something to the queue for video processing
 
     return { "video": video.to_dict() }
 
