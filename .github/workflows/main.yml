@@ -7,7 +7,7 @@ on:
 jobs:
   DeployInfrastructure:
     runs-on: buildjet-4vcpu-ubuntu-2204
-    environment: prod
+    environment: prd
     permissions:
       id-token: write
       contents: read
