@@ -64,11 +64,6 @@ def get_videos_for_user_route():
 @users_blueprint.route("/video", methods=["POST"])
 @authorize(lambda: g.has_base)
 def add_video_for_user_route():
-    user = get_user_by_id(g.ksn)
-
-    if not user:
-        NOT_FOUND
-
     yt_link = request.json.get("yt_link")
     video = add_new_video(g.ksn, yt_link)
 

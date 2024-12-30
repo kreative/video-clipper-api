@@ -4,6 +4,7 @@ import time
 import openai
 from flask import current_app as app
 from sentry_sdk import capture_message
+from psycopg2 import OperationalError
 
 
 def retry_on_db_error(func):
@@ -16,7 +17,7 @@ def retry_on_db_error(func):
                 retries -= 1
                 if retries == 0:
                     raise e
-                sleep(2 + (1 * random.random()))
+                time.sleep(2 + (1 * random.random()))
         return None
 
     return wrapper
@@ -48,6 +49,7 @@ def retry_with_exp_backoff(
         The errors to retry on
 
     """
+
     def wrapper(*args, **kwargs):
         num_retries = 0
         delay = initial_delay
@@ -73,28 +75,26 @@ def retry_with_exp_backoff(
                 num_retries += 1  # Increment retries
                 if num_retries > max_retries:
                     app.logger.error(
-                        f"Maximum Number of Retries for {func.__name__}"
-                        + f"({max_retries}) exceeded.",
+                        f"Maximum Number of Retries for {func.__name__}" + f"({max_retries}) exceeded.",
                     )
                     return None
-                delay *= exponential_base * \
-                    (1 + jitter * random.random())  # Increment the delay
+                delay *= exponential_base * (1 + jitter * random.random())  # Increment the delay
                 time.sleep(delay)
             except errors:  # Retry on specific errors
                 num_retries += 1  # Increment retries
                 if num_retries > max_retries:
                     app.logger.error(
-                        f"Maximum Number of Retries for {func.__name__}"
-                        + f"({max_retries}) exceeded.",
+                        f"Maximum Number of Retries for {func.__name__}" + f"({max_retries}) exceeded.",
                     )
-                    _ = capture_message(f"Maximum Number of Retries for {func.__name__}"
-                                        + f"({max_retries}) exceeded.", level="fatal")
+                    _ = capture_message(
+                        f"Maximum Number of Retries for {func.__name__}" + f"({max_retries}) exceeded.", level="fatal"
+                    )
                     return None
-                delay *= exponential_base * \
-                    (1 + jitter * random.random())  # Increment the delay
+                delay *= exponential_base * (1 + jitter * random.random())  # Increment the delay
                 time.sleep(delay)
             except Exception as e:
                 raise e  # Raise exceptions for unspecified errors
+
     return wrapper  # type: ignore[return-value]
 
 
@@ -114,6 +114,7 @@ def generic_retry(func, max_retries=3, initial_delay=1, exponential_base=2, jitt
         None: the function is not returned
 
     """
+
     def wrapper(*args, **kwargs):
         num_retries = 0
         delay = initial_delay
@@ -131,7 +132,7 @@ def generic_retry(func, max_retries=3, initial_delay=1, exponential_base=2, jitt
 
                     capture_message(f"Exceeded max retries of {max_retries} for {func.__name__}", level="fatal")
                     raise e
-                delay *= exponential_base * \
-                    (1 + jitter * random.random())  # Increment the delay
+                delay *= exponential_base * (1 + jitter * random.random())  # Increment the delay
                 time.sleep(delay)
+
     return wrapper

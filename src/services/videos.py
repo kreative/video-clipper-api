@@ -16,6 +16,7 @@ gpt = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 def convert_keywords_to_string(keywords):
     return ",".join(keywords)
 
+
 @retry_on_db_error
 def get_videos_for_user(user_id):
     return Video.query.filter_by(user_id=user_id).all()
@@ -31,16 +32,16 @@ def get_video_by_id(video_id):
 
 @retry_on_db_error
 def add_new_video(user_id, link):
-    if not YouTube.validate_link(link):
+    if not link.startswith("https://www.youtube.com"):
         raise ValueError("Invalid YouTube Link")
 
     try:
         yt = YouTube(link)
     except Exception as e:
-        app.logger.error(e)
         raise ValueError("Connection Error")
 
     video_info = get_video_info(yt)
+    keywords = convert_keywords_to_string(video_info["keywords"])
 
     new_video = Video(
         user_id=user_id,
@@ -48,10 +49,10 @@ def add_new_video(user_id, link):
         status="pending",
         title=video_info["title"],
         length=video_info["length"],
-        views=video_info["views"],
+        views=str(video_info["views"]),
         thumbnail_url=video_info["thumbnail_url"],
         description=video_info["description"],
-        keywords=convert_keywords_to_string(video_info["keywords"]),
+        keywords=keywords,
         rating=video_info["rating"],
         author=video_info["author"],
         channel_url=video_info["channel_url"],

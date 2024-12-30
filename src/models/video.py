@@ -14,10 +14,10 @@ class Video(db.Model):
     status: str = Column(String, nullable=False, default="pending")
     title: str = Column(String, nullable=True)
     length: int = Column(Integer, nullable=True)
-    views: int = Column(Integer, nullable=True)
+    views: str = Column(String, nullable=True)
     thumbnail_url: str = Column(String, nullable=True)
     description: str = Column(String, nullable=True)
-    keywords: str = Column(String, nullable=True) # will be comma seperate values
+    keywords: str = Column(String, nullable=True)  # will be comma seperate values
     rating: float = Column(Float, nullable=True)
     author: str = Column(String, nullable=True)
     channel_url: str = Column(String, nullable=True)
