@@ -8,6 +8,7 @@ from src.utils.auth import authorize
 
 users_blueprint = Blueprint("users", __name__, url_prefix="/users")
 
+
 @users_blueprint.route("", methods=["GET"])
 @authorize(lambda: g.has_base)
 def get_user_route():
@@ -16,7 +17,7 @@ def get_user_route():
     account = id_account[0] if id_account else None
 
     if not user:
-        return { "user": None, "account": account }
+        return {"user": None, "account": account}
 
     return {
         "user": {
@@ -48,15 +49,16 @@ def update_user_route():
 
 
 @users_blueprint.route("/videos", methods=["GET"])
+@authorize(lambda: g.has_base)
 def get_videos_for_user_route():
     videos = get_videos_for_user(g.ksn)
 
     if not videos or len(videos) == 0:
-        return { "videos": [] }
+        return {"videos": []}
 
     videos_dict = [video.to_dict() for video in videos]
 
-    return { "videos": videos_dict }
+    return {"videos": videos_dict}
 
 
 @users_blueprint.route("/video", methods=["POST"])
@@ -72,7 +74,7 @@ def add_video_for_user_route():
 
     # send off something to the queue for video processing
 
-    return { "video": video.to_dict() }
+    return {"video": video.to_dict()}
 
 
 @users_blueprint.route("/video/<int:video_id>", methods=["DELETE"])
