@@ -8,6 +8,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 
 from src.blueprints.users import users_blueprint
+from src.services.sqs_consumer import SQSConsumer
 from src.db import db
 
 app = Flask(__name__)
@@ -70,5 +71,14 @@ app.register_blueprint(users_blueprint)
 def hello_world():
     return "hello developer :)"
 
+# Start the SQS consumer thread
+sqs_consumer = SQSConsumer(app)
+sqs_consumer.start()
+
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)  # noqa: S201
+    try:
+        app.run(debug=True, use_reloader=False)
+    finally:
+        if sqs_consumer:
+            sqs_consumer.stop()
+

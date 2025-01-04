@@ -3,7 +3,7 @@ from flask import Blueprint, g, request
 from src.constants.status_codes import ACCEPTED, NOT_FOUND, UNAUTHORIZED
 from src.services.kreative_id import get_info_for_accounts
 from src.services.user import get_user_by_id, update_user
-from src.services.videos import add_new_video, delete_video, get_video_by_id, get_videos_for_user
+from src.services.videos import add_new_video, delete_video, get_video_by_id, get_videos_for_user, send_message
 from src.utils.auth import authorize
 
 users_blueprint = Blueprint("users", __name__, url_prefix="/users")
@@ -67,7 +67,7 @@ def add_video_for_user_route():
     yt_link = request.json.get("yt_link")
     video = add_new_video(g.ksn, yt_link)
 
-    # send off something to the queue for video processing
+    send_message(video.id, yt_link)
 
     return {"video": video.to_dict()}
 

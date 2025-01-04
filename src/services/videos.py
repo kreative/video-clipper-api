@@ -1,10 +1,13 @@
+import json
 import os
 
 import httpx
 from deepgram import DeepgramClient, PrerecordedOptions
+from flask import current_app as app
 from openai import OpenAI
 from pytubefix import YouTube
 
+from src.aws.sqs import sqs_client
 from src.db import db
 from src.models import Video
 from src.utils.resiliance import retry_on_db_error, retry_with_exp_backoff
@@ -37,7 +40,7 @@ def add_new_video(user_id, link):
 
     try:
         yt = YouTube(link)
-    except Exception as e:
+    except Exception:
         raise ValueError("Connection Error")
 
     video_info = get_video_info(yt)
@@ -67,15 +70,17 @@ def add_new_video(user_id, link):
 
 
 @retry_on_db_error
-def update_video(video_id, **kwargs):
+def update_video(video_id, transcript, prompt_response):
     video = get_video_by_id(video_id)
 
     if not video:
         raise ValueError("Invalid Video ID")
 
-    for key, value in kwargs.items():
-        if hasattr(video, key):
-            setattr(video, key, value)
+    if transcript:
+        video.transcript = transcript
+
+    if prompt_response:
+        video.prompt_response = prompt_response
 
     db.session.commit()
 
@@ -112,12 +117,13 @@ def get_video_info(yt) -> dict:
 
 def download_video_as_mp4(yt):
     try:
-        yt = YouTube(link)
+        yt = YouTube(yt)
     except Exception as e:
         app.logger.error(e)
         return "Conection Error", 500
 
-    save_path = "/tmp_video_downloads"
+    project_dir = os.path.abspath(os.path.dirname(__file__))
+    save_path = project_dir + "/tmp_video_downloads"
     mp4_streams = yt.streams.filter(file_extension="mp4")
     d_video = mp4_streams[-1]
 
@@ -128,6 +134,10 @@ def download_video_as_mp4(yt):
         print("Some Error!")
 
     return f"{save_path}/{yt.title}.m4a"
+
+
+def remove_downloaded_video(file_path):
+    os.remove(file_path)
 
 
 @retry_with_exp_backoff
@@ -162,3 +172,53 @@ def summarize_text(transcript, prompt):
     )
 
     return response.choices[0].message.content
+
+
+def send_message(video_id, yt_link):
+    print("Sending message to SQS")
+    print(video_id)
+    print(yt_link)
+
+    sqs_client.send_message(
+        QueueUrl="https://sqs.us-east-1.amazonaws.com/485069184701/video-clipper",
+        MessageBody=json.dumps({ "yt_link": yt_link, "video_id": video_id }),
+        DelaySeconds=0,
+    )
+
+
+def process_video_message(message):
+    body = json.loads(message.get("Body"))
+    yt_link = body["yt_link"]
+    video_id = body["video_id"]
+
+    print(f"Processing {video_id}")
+
+    path = download_video_as_mp4(yt_link)
+
+    print(path)
+
+    transcript = transcribe_audio(path)
+
+    print(transcript)
+
+    remove_downloaded_video(path)
+
+    print("Deleted video")
+
+    prompt = f"Summarize the following transcript: {transcript}"
+
+    print(prompt)
+
+    summary = summarize_text(transcript, prompt)
+
+    print(summary)
+
+    updated_video = update_video(
+        video_id=video_id,
+        transcript=transcript,
+        prompt_response=summary,
+    )
+
+    print(updated_video)
+
+    return True
