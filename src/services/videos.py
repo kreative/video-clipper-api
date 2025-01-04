@@ -70,7 +70,7 @@ def add_new_video(user_id, link):
 
 
 @retry_on_db_error
-def update_video(video_id, transcript, prompt_response):
+def update_video(video_id, transcript, prompt_response, status):
     video = get_video_by_id(video_id)
 
     if not video:
@@ -81,6 +81,9 @@ def update_video(video_id, transcript, prompt_response):
 
     if prompt_response:
         video.prompt_response = prompt_response
+
+    if status:
+        video.status = status
 
     db.session.commit()
 
@@ -217,6 +220,7 @@ def process_video_message(message):
         video_id=video_id,
         transcript=transcript,
         prompt_response=summary,
+        status="completed",
     )
 
     print(updated_video)
