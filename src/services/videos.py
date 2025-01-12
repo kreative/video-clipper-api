@@ -11,6 +11,7 @@ from src.aws.sqs import sqs_client
 from src.db import db
 from src.models import Video
 from src.utils.resiliance import retry_on_db_error, retry_with_exp_backoff
+from src.services.user import get_user_by_id
 
 deepgram = DeepgramClient(os.getenv("DEEPGRAM_API_KEY"))
 gpt = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -163,7 +164,7 @@ def transcribe_audio(file_path):
     return response["results"]["channels"][0]["alternatives"][0]["transcript"]
 
 
-def summarize_text(transcript, prompt):
+def process_text(transcript, prompt):
     response = gpt.chat.completions.create(
         messages=[
             {
@@ -193,6 +194,7 @@ def process_video_message(message):
     body = json.loads(message.get("Body"))
     yt_link = body["yt_link"]
     video_id = body["video_id"]
+    user = get_user_by_id(57427833)
 
     print(f"Processing {video_id}")
 
@@ -208,18 +210,15 @@ def process_video_message(message):
 
     print("Deleted video")
 
-    prompt = f"Summarize the following transcript: {transcript}"
+    prompt = f"{user.prompt}\n{transcript}"
+    prompt_response = process_text(transcript, prompt)
 
-    print(prompt)
-
-    summary = summarize_text(transcript, prompt)
-
-    print(summary)
+    print(prompt_response)
 
     updated_video = update_video(
         video_id=video_id,
         transcript=transcript,
-        prompt_response=summary,
+        prompt_response=prompt_response,
         status="completed",
     )
 
