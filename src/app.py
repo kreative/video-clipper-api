@@ -33,7 +33,15 @@ dictConfig(
     },
 )
 
-CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "https://*.kreativeusa.com", "http://*.kreativeusa.com"]}}, supports_credentials=True)
+CORS(app, resources={r"/*": {
+    "origins": [
+        "http://localhost:3000",
+        "https://vidclip.kreativeusa.com",
+        "http://vidclip.kreativeusa.com",
+        "https://kreativeusa.com",
+        "http://kreativeusa.com"
+    ]
+}}, supports_credentials=True)
 
 @app.before_request
 def before_request():
